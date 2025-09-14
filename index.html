@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swift Access - Проверка ключа</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(28, 28, 48, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(28, 28, 48, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(28, 28, 48, 0.4) 0%, transparent 40%);
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 40px;
+        }
+        
+        .logo h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe, #fd79a8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gradientShift 5s ease infinite;
+            margin-bottom: 10px;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .logo p {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+        }
+        
+        .key-form {
+            background: rgba(20, 20, 30, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .key-form h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #a29bfe;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(15, 15, 25, 0.7);
+            border: 1px solid #6c5ce7;
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #fd79a8;
+            box-shadow: 0 0 10px rgba(253, 121, 168, 0.5);
+        }
+        
+        .input-group input::placeholder {
+            color: #555;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #6c5ce7, #fd79a8);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .error {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+            border: 1px solid #ff4757;
+        }
+        
+        .success {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+            border: 1px solid #2ed573;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            color: #777;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin: 10px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 600px) {
+            .logo h1 {
+                font-size: 2.5rem;
+            }
+            
+            .key-form {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>SWIFT</h1>
+            <p>Проверка ключа доступа</p>
+        </div>
+        
+        <div class="key-form">
+            <h2>Введите ключ доступа</h2>
+            <div class="input-group">
+                <input type="text" id="key-input" placeholder="Введите ваш ключ" autocomplete="off">
+            </div>
+            <button class="btn" id="submit-btn">Проверить ключ</button>
+            <div class="loader" id="loader"></div>
+            <div class="message error" id="error-message">Неверный ключ доступа</div>
+            <div class="message success" id="success-message">Ключ принят! Перенаправляем...</div>
+        </div>
+        
+        <div class="instructions">
+            <p>Система проверяет ключи по локальной базе</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const keyInput = document.getElementById('key-input');
+            const submitBtn = document.getElementById('submit-btn');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            const loader = document.getElementById('loader');
+            
+            // URL для перенаправления после успешной проверки
+            const redirectUrl = "https://example.com"; // Замените на нужный URL
+            
+            // Загружаем ключи из localStorage
+            let validKeys = JSON.parse(localStorage.getItem('validKeys')) || [];
+            
+            // Если ключей нет, добавляем тестовые
+            if (validKeys.length === 0) {
+                validKeys = ["TESTKEY123", "wMAgl4SvOZml09mB"];
+                localStorage.setItem('validKeys', JSON.stringify(validKeys));
+            }
+            
+            // Функция проверки ключа
+            function validateKey(userKey) {
+                // Очищаем ключ от лишних пробелов
+                const cleanKey = userKey.trim();
+                
+                // Проверяем, есть ли ключ в списке
+                return validKeys.includes(cleanKey);
+            }
+            
+            // Обработчик нажатия на кнопку
+            submitBtn.addEventListener('click', async function() {
+                const userKey = keyInput.value;
+                
+                if (!userKey) {
+                    showError("Пожалуйста, введите ключ доступа");
+                    return;
+                }
+                
+                // Показать загрузку
+                loader.style.display = 'block';
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+                submitBtn.disabled = true;
+                
+                // Имитация задержки для проверки
+                setTimeout(() => {
+                    const isValid = validateKey(userKey);
+                    
+                    if (isValid) {
+                        showSuccess();
+                        
+                        // Перенаправление через 2 секунды
+                        setTimeout(() => {
+                            window.location.href = redirectUrl;
+                        }, 2000);
+                    } else {
+                        showError("Неверный ключ доступа. Ключ не найден в базе.");
+                    }
+                    
+                    loader.style.display = 'none';
+                    submitBtn.disabled = false;
+                }, 1000);
+            });
+            
+            // Функции показа сообщений
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            }
+            
+            function showSuccess() {
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'block';
+            }
+            
+            // Обработка нажатия Enter
+            keyInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    submitBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
