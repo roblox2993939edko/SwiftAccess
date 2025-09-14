@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swift Access - Админ панель</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .logo h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe, #fd79a8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gradientShift 5s ease infinite;
+            margin-bottom: 10px;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .logo p {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+        }
+        
+        .admin-panel {
+            background: rgba(20, 20, 30, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .admin-panel h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #a29bfe;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #a29bfe;
+        }
+        
+        .input-group textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            background: rgba(15, 15, 25, 0.7);
+            border: 1px solid #6c5ce7;
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #fd79a8;
+            box-shadow: 0 0 10px rgba(253, 121, 168, 0.5);
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(90deg, #6c5ce7, #fd79a8);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(90deg, #ff4757, #ff6b81);
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .success {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+            border: 1px solid #2ed573;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            color: #777;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 600px) {
+            .logo h1 {
+                font-size: 2.5rem;
+            }
+            
+            .admin-panel {
+                padding: 20px;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>SWIFT</h1>
+            <p>Панель администратора</p>
+        </div>
+        
+        <div class="admin-panel">
+            <h2>Управление ключами доступа</h2>
+            
+            <div class="input-group">
+                <label for="keys-textarea">Список ключей (каждый ключ с новой строки):</label>
+                <textarea id="keys-textarea" placeholder="Введите ключи, каждый с новой строки"></textarea>
+            </div>
+            
+            <button class="btn" id="save-keys-btn">Сохранить ключи</button>
+            <button class="btn btn-danger" id="reset-keys-btn">Сбросить к значениям по умолчанию</button>
+            
+            <div class="message success" id="success-message">Ключи успешно сохранены!</div>
+            
+            <div class="instructions">
+                <p>Изменения применяются сразу и сохраняются в localStorage браузера.</p>
+                <p>Для применения изменений на всех устройствах необходимо обновить ключи на каждом устройстве отдельно.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const keysTextarea = document.getElementById('keys-textarea');
+            const saveKeysBtn = document.getElementById('save-keys-btn');
+            const resetKeysBtn = document.getElementById('reset-keys-btn');
+            const successMessage = document.getElementById('success-message');
+            
+            // Загружаем ключи из localStorage
+            let validKeys = JSON.parse(localStorage.getItem('validKeys')) || [];
+            
+            // Если ключей нет, добавляем тестовые
+            if (validKeys.length === 0) {
+                validKeys = ["TESTKEY123", "wMAgl4SvOZml09mB"];
+                localStorage.setItem('validKeys', JSON.stringify(validKeys));
+            }
+            
+            // Обновляем текстовое поле
+            keysTextarea.value = validKeys.join('\n');
+            
+            // Сохранение ключей
+            saveKeysBtn.addEventListener('click', function() {
+                const keysText = keysTextarea.value;
+                const keysArray = keysText.split('\n')
+                    .map(key => key.trim())
+                    .filter(key => key.length > 0);
+                
+                localStorage.setItem('validKeys', JSON.stringify(keysArray));
+                
+                // Показываем сообщение об успехе
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            });
+            
+            // Сброс ключей
+            resetKeysBtn.addEventListener('click', function() {
+                const defaultKeys = ["TESTKEY123", "wMAgl4SvOZml09mB"];
+                localStorage.setItem('validKeys', JSON.stringify(defaultKeys));
+                keysTextarea.value = defaultKeys.join('\n');
+                
+                // Показываем сообщение об успехе
+                successMessage.textContent = 'Ключи сброшены к значениям по умолчанию!';
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>
